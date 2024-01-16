@@ -1,4 +1,4 @@
-import socket
+import socket, threading
 from user import User, UserManager
 from task import TaskManager
 
@@ -62,9 +62,10 @@ def handle_client(client:socket.socket, addr):
 
 
 def main():
-    client, addr = server.accept()
-    handle_client(client=client, addr=addr)
-
+    while True:
+        client, addr = server.accept()
+        thread = threading.Thread(target=handle_client, args=(client, addr))
+        thread.start() 
 
 if __name__ == '__main__':
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

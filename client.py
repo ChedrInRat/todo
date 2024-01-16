@@ -9,9 +9,13 @@ def main():
     while True:
         data = client.recv(1024)
         response = data.decode('utf-8')
+        if not response:
+            break
         print(response)
         msg = input()
         client.send(msg.encode('utf-8'))
+
+    client.close()
 
 if __name__ == '__main__':
     main()

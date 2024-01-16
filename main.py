@@ -15,10 +15,10 @@ def menu(user:User):
         if action == '0':
             break
         else:
-            tm = TaskManager()
+            tm = TaskManager(user)
             actions: dict = {'1': tm.create_task, '2': tm.view_tasks, '3': tm.check_task}
 
-            actions[action](user.tasks) 
+            actions[action]() 
 
 def main():
     user_list = UserManager.load_users

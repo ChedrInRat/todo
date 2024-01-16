@@ -1,14 +1,13 @@
-from task import Task
-
 class User:
 
     def __init__(self, name, password) -> None:
         self.name = name 
         self.password = password
-        self.tasks: list[Task] = list()
+        self.tasks_path = f'{name}.txt'
 
     def __str__(self) -> str:
         return f'Name: {self.name}'
+    
 
 class UserManager:
     _user_list: list[User] = list() 

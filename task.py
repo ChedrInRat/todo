@@ -54,9 +54,12 @@ class TaskManager:
     def load_user_tasks(self) -> list[Task]:
         tasks = list()
         lines = list()
-        with open(self.user.tasks_path, 'r') as f:
-            lines = f.readlines()
-        
+        try:
+            with open(self.user.tasks_path, 'r') as f:
+                lines = f.readlines()
+        except:
+            pass
+
         if lines:
             for line in lines:
                 title, text, timestamp, status = [x.split(':')[-1] for x in line.strip().split(',')] 

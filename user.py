@@ -40,9 +40,7 @@ class UserManager:
             f.write(','.join([f'{key}:{user_dict[key]}' for key in user_dict]) + '\n')
 
     @staticmethod
-    def create_user():
-        name = input('Enter you name: ')
-        password = input('Enter password: ')
+    def create_user(name, password):
         user = User(name=name, password=password)
 
         UserManager.save_user(user=user)
@@ -50,10 +48,9 @@ class UserManager:
         return user 
 
     @staticmethod
-    def user_login(uid) -> bool:
+    def user_login(uid, password) -> User|None:
         users = UserManager.load_users() 
         user = users[uid]
-        password = input('Enter password: ') 
-        
-        return password == user.password
+        if password == user.password:
+            return user
 

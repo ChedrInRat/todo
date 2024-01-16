@@ -1,3 +1,4 @@
+import socket
 from user import User
 from datetime import datetime
 
@@ -14,12 +15,15 @@ class Task:
 
 class TaskManager:
  
-    def __init__(self, user:User) -> None:
+    def __init__(self, user:User, client:socket.socket) -> None:
         self.user:User = user
+        self.client = client
 
     def create_task(self):
-        title = input('Write task title\n')
-        text = input('Write task text\n')
+        self.client.send('Enter task title'.encode('utf-8'))
+        title = self.client.recv(1024).decode('utf-8')
+        self.client.send('Enter task text'.encode('utf-8'))
+        text = self.client.recv(1024).decode('utf-8')
 
         task = Task(title=title, text=text)
         self.save_user_task(task=task)
@@ -28,23 +32,26 @@ class TaskManager:
     def view_tasks(self):
         tasks = self.load_user_tasks()
         if tasks == []:
-            print('No tasks')
+            self.client.send('No tasks'.encode('utf-8'))
         else:
-            print(f'You have {len(tasks)} tasks:',
-                  *[f'{i+1}:{task.title}' for i, task in enumerate(tasks)],
-                  sep='\n')
+            msg_menu = f'You have {len(tasks)} tasks:\n'
+            for key, task in enumerate(tasks):
+                msg_menu += f'{key+1}: {task}\n' 
+            self.client.send(msg_menu.encode('utf-8'))
         return len(tasks)
 
     def check_task(self):
         task_amount = self.view_tasks()
         if task_amount != 0:
             while True:
-                task_id = input('Enter id of the task you want to view, or 0 if you want to return to the menu:\n')
+                menu_msg = 'Enter id of the task you want to view, or 0 if you want to return to the menu:\n' 
+                self.client.send(menu_msg.encode('utf-8'))
+                task_id = self.client.recv(1024).decode('utf-8') 
                 
                 if task_id == '0':
                     break
                 else: 
-                    print(self.load_user_tasks()[int(task_id)-1]) 
+                    self.client.send(str(self.load_user_tasks()[int(task_id)-1]).encode('utf-8'))
 
 
     def change_task_status(self, task:Task):
@@ -73,6 +80,5 @@ class TaskManager:
         task_dict = task.__dict__
         with open(self.user.tasks_path, 'a+') as f:
             f.write(','.join([f'{key}:{task_dict[key]}' for key in task_dict]) + '\n')
-
 
 

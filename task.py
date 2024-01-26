@@ -1,32 +1,101 @@
 from user import User
-from datetime import datetime
+from db import db_connect
+from sqlite3 import Cursor
+from datetime import datetime, time
 
 class Task:
-    def __init__(self, title, text, timestamp=int(datetime.now().timestamp()), status='Created') -> None:
-        self.title = title
-        self.text = text
-        self.timestamp = timestamp 
-        self.status = status 
+    def __init__(self, id:int|None, title:str, text:str, user_id:int, status:str,
+                 timestamp=int(datetime.now().timestamp())) -> None:
 
-    def __str__(self) -> str:
-        return f'Title: {self.title}\nText: {self.text}\nCreate date: { datetime.fromtimestamp(self.timestamp).strftime("%d.%m.%y")}'  
+        self.__id = id
+        self._title = title
+        self._text = text
+        self._timestamp = timestamp 
+        self._status = status 
+        self._user_id = user_id 
+
+    @property
+    def title(self):
+        return self._title
+
+    @title.setter
+    def title(self, value):
+        self._title = value
+        self.update()
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+        self.update
+
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, value):
+        self._status = value
+        self.update  
+
+    @db_connect
+    def update(self, cursor:Cursor):
+        cursor.execute(f"UPDATE tasks SET title='{self.title}' text='{self.text}' status='{self.status}' WHERE rowid={self.__id}") 
 
 
+class TaskHandler:
+    
+    @staticmethod
+    @db_connect
+    def create_task(cursor:Cursor, title:str, text:str, user_id:int, status:str='Created') -> Task:
+        timestamp = int(datetime.now().timestamp())
+        cursor.execute(f"""INSERT INTO tasks (title, text, timestamp, status, user_id) VALUES ('{title}', '{text}', {timestamp}, '{status}', {user_id})""")
+         
+        return Task(id=cursor.lastrowid, title=title, text=text, status=status, user_id=user_id)
+        
+
+    @staticmethod
+    @db_connect
+    def get_task_by_id(cursor:Cursor, task_id) -> Task|None:
+        cursor.execute(f"SELECT rowid, title, text, timestamp, status, user_id FROM tasks WHETE rowid={task_id}")
+        task = cursor.fetchone()
+
+        return Task(id=task[0], title=task[1], text=task[2], timestamp=task[3], status=task[4], user_id=task[5])
+
+    @staticmethod
+    @db_connect
+    def delete_task(cursor:Cursor, task_id):
+        cursor.execute(f"DELETE FROM tasks WHERE rowid={task_id}") 
+
+    @staticmethod
+    @db_connect
+    def get_list(cursor:Cursor, user_id:int) -> tuple[Task,...]|None:
+        cursor.execute(f"SELECT rowid, title, text, timestamp, status FROM tasks WHERE user_id={user_id}") 
+        tasks = cursor.fetchall()
+        answer = tuple(Task(id=rowid, title=title, text=text, timestamp=timestamp, status=status, user_id=user_id) 
+                       for rowid, title, text, timestamp, status in tasks) if tasks else None
+
+        return answer
+
+    
+    
 class TaskManager:
- 
+    
     def __init__(self, user:User) -> None:
-        self.user:User = user
+        self.user = user
 
     def create_task(self):
-        title = input('Write task title\n')
-        text = input('Write task text\n')
+        title = input('Write task title: ')
+        text = input('Write task text: ')
 
-        task = Task(title=title, text=text)
-        self.save_user_task(task=task)
-
+        TaskHandler.create_task(title=title, text=text, user_id=self.user.id)  
+        
 
     def view_tasks(self):
-        tasks = self.load_user_tasks()
+        tasks = TaskHandler.get_list(user_id=self.user.id)
         if tasks == []:
             print('No tasks')
         else:
@@ -35,44 +104,4 @@ class TaskManager:
                   sep='\n')
         return len(tasks)
 
-    def check_task(self):
-        task_amount = self.view_tasks()
-        if task_amount != 0:
-            while True:
-                task_id = input('Enter id of the task you want to view, or 0 if you want to return to the menu:\n')
-                
-                if task_id == '0':
-                    break
-                else: 
-                    print(self.load_user_tasks()[int(task_id)-1]) 
-
-
-    def change_task_status(self, task:Task):
-        status = input('Enter status:\n')
-        task.status = status
-    
-    def load_user_tasks(self) -> list[Task]:
-        tasks = list()
-        lines = list()
-        try:
-            with open(self.user.tasks_path, 'r') as f:
-                lines = f.readlines()
-        except:
-            pass
-
-        if lines:
-            for line in lines:
-                title, text, timestamp, status = [x.split(':')[-1] for x in line.strip().split(',')] 
-                task = Task(title=title, text=text, timestamp=int(timestamp), status=status) 
-                
-                tasks.append(task)
-
-        return tasks
-
-    def save_user_task(self, task:Task):
-        task_dict = task.__dict__
-        with open(self.user.tasks_path, 'a+') as f:
-            f.write(','.join([f'{key}:{task_dict[key]}' for key in task_dict]) + '\n')
-
-
-
+       

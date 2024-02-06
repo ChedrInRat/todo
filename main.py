@@ -1,9 +1,10 @@
 from user import User, UserHandler, UserManager
 from task import TaskManager
 
-def menu(user:User):
+
+def menu(user: User):
     print(f'Hi, {user.name}!')
-    while True: 
+    while True:
         print('Select action:',
               '0 -> exit',
               '1 -> create task',
@@ -16,9 +17,11 @@ def menu(user:User):
             break
         else:
             tm = TaskManager(user)
-            actions: dict = {'1': tm.create_task, '2': tm.view_tasks,} #'3': tm.check_task}
+            # '3': tm.check_task}
+            actions: dict = {'1': tm.create_task, '2': tm.view_tasks, }
 
-            actions[action]() 
+            actions[action]()
+
 
 def main():
 
@@ -28,13 +31,14 @@ def main():
             UserManager.create_user()
         else:
             print('System have this users:',
-                  *[f'{uid+1}: {user.name}' for uid, user in enumerate(user_list)],
+                  *[f'{uid+1}: {user.name}' for uid,
+                      user in enumerate(user_list)],
                   'new -> create new user',
                   '0 -> exit',
                   sep='\n')
-            
+
             action = input()
-            
+
             if action == '0':
                 break
             elif action == 'new':

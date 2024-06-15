@@ -43,8 +43,8 @@ class Task:
 
     @db_connect
     def update(self, cursor: Cursor):
-        cursor.execute(f"UPDATE tasks SET title='{self.title}' text='{
-                       self.text}' status='{self.status}' WHERE rowid={self.__id}")
+        req = f"UPDATE tasks SET title='{self.title}' text='{self.text}' status='{self.status}' WHERE rowid={self.__id}"
+        cursor.execute(req)
 
 
 class TaskHandler:

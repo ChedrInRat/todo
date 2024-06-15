@@ -27,7 +27,8 @@ class User:
 
     @db_connect
     def login(self, cursor: Cursor, password: str) -> bool:
-        cursor.execute(f"SELECT password FROM users WHERE rowid={self.__id}")
+        req = f"SELECT password FROM users WHERE rowid={self.__id}"
+        cursor.execute(req)
         pwd = cursor.fetchone()
         self._login = True if pwd[0] == password else False
 
@@ -35,8 +36,8 @@ class User:
 
     @db_connect
     def update(self, cursor: Cursor):
-        cursor.execute(f"UPDATE users SET name='{
-                       self._name}' WHERE rowid={self.__id}'")
+        req = f"UPDATE users SET name='{self._name}' WHERE rowid={self.__id}"
+        cursor.execute(req)
 
     def unlogin(self):
         self._login = False
